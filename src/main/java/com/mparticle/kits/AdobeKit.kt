@@ -18,11 +18,10 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
 
     protected var mediaTracker: MediaTracker? = null
     private var currentPlayheadPosition: Long = 0
-    private var sessionStarted = false
 
-    override fun getName() = "Adobe Media"
+    override open fun getName() = "Adobe Media"
 
-    public override fun onKitCreate(settings: MutableMap<String, String>?, context: Context): List<ReportingMessage> {
+    public override open fun onKitCreate(settings: MutableMap<String, String>?, context: Context): List<ReportingMessage> {
         super.onKitCreate(settings, context)
         val appId = settings?.get(LAUNCH_APP_ID)
 
@@ -41,11 +40,11 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
         return listOf()
     }
 
-    override fun setOptOut(optout: Boolean) = null
+    override open fun setOptOut(optout: Boolean) = null
 
-    override fun logEvent(p0: MPEvent) = null
+    override open fun logEvent(p0: MPEvent) = null
 
-    override fun leaveBreadcrumb(p0: String?) = null
+    override open fun leaveBreadcrumb(p0: String?) = null
 
     override fun logException(p0: Exception?, p1: MutableMap<String, String>?, p2: String?) = null
 
@@ -90,27 +89,28 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
         return null
     }
 
-    private fun sessionStart(mediaEvent: MediaEvent) {
-        if (!sessionStarted) {
-            val mediaInfo = mediaEvent.mediaContent.getMediaObject()
-            mediaTracker?.trackSessionStart(mediaInfo, mediaEvent.customAttributes?.toAdobeAttributes())
-            sessionStarted = true
+    protected open fun sessionStart(mediaEvent: MediaEvent) {
+        mediaEvent.mediaContent.getMediaObject().let {
+            mediaTracker?.trackSessionStart(
+                it,
+                mediaEvent.customAttributes?.toAdobeAttributes()
+            )
         }
     }
 
-    private fun sessionEnd() {
+    protected open fun sessionEnd() {
         mediaTracker?.trackSessionEnd()
     }
 
-    private fun play() {
+    protected open fun play() {
         mediaTracker?.trackPlay()
     }
 
-    private fun pause() {
+    protected open fun pause() {
         mediaTracker?.trackPause()
     }
 
-    private fun updateQos(mediaEvent: MediaEvent) {
+    protected open fun updateQos(mediaEvent: MediaEvent) {
         mediaEvent.qos?.let { mediaQos ->
             val qoe = Media.createQoEObject(mediaQos.bitRate?.toLong() ?: 0,
                     mediaQos.startupTime?.toSeconds() ?: 0.0,
@@ -120,61 +120,61 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
         }
     }
 
-    private fun adBreakStart(mediaEvent: MediaEvent) {
+    protected open fun adBreakStart(mediaEvent: MediaEvent) {
         val adBreakObject = mediaEvent.adBreak?.getAdBreakObject()
         mediaTracker?.trackEvent(Media.Event.AdBreakStart, adBreakObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun adBreakEnd(mediaEvent: MediaEvent) {
+    protected open fun adBreakEnd(mediaEvent: MediaEvent) {
         val adBreakObject = mediaEvent.adBreak?.getAdBreakObject()
         mediaTracker?.trackEvent(Media.Event.AdBreakComplete, adBreakObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun adStart(mediaEvent: MediaEvent) {
+    protected open fun adStart(mediaEvent: MediaEvent) {
         val adBreakObject = mediaEvent.mediaAd?.getAdObject()
         mediaTracker?.trackEvent(Media.Event.AdStart, adBreakObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun adEnd(mediaEvent: MediaEvent) {
+    protected open fun adEnd(mediaEvent: MediaEvent) {
         mediaTracker?.trackEvent(Media.Event.AdComplete, mediaEvent.mediaAd?.getAdObject(), mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun seekEnd(mediaEvent: MediaEvent) {
+    protected open fun seekEnd(mediaEvent: MediaEvent) {
         val mediaObject = mediaEvent.mediaContent.getMediaObject()
         mediaTracker?.trackEvent(Media.Event.SeekComplete, mediaObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun seekStart(mediaEvent: MediaEvent) {
+    protected open fun seekStart(mediaEvent: MediaEvent) {
         val mediaObject = mediaEvent.mediaContent.getMediaObject()
         mediaTracker?.trackEvent(Media.Event.SeekStart, mediaObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun bufferEnd(mediaEvent: MediaEvent) {
+    protected open fun bufferEnd(mediaEvent: MediaEvent) {
         val mediaObject = mediaEvent.mediaContent.getMediaObject()
         mediaTracker?.trackEvent(Media.Event.BufferComplete, mediaObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun bufferStart(mediaEvent: MediaEvent) {
+    protected open fun bufferStart(mediaEvent: MediaEvent) {
         val mediaObject = mediaEvent.mediaContent.getMediaObject()
         mediaTracker?.trackEvent(Media.Event.BufferStart, mediaObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun segmentEnd(mediaEvent: MediaEvent) {
+    protected open fun segmentEnd(mediaEvent: MediaEvent) {
         val chapterObject = mediaEvent.segment?.getChapterObject()
         mediaTracker?.trackEvent(Media.Event.ChapterComplete, chapterObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun segmentSkip(mediaEvent: MediaEvent) {
+    protected open fun segmentSkip(mediaEvent: MediaEvent) {
         val chapterObject = mediaEvent.segment?.getChapterObject()
         mediaTracker?.trackEvent(Media.Event.ChapterSkip, chapterObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun segmentStart(mediaEvent: MediaEvent) {
+    protected open fun segmentStart(mediaEvent: MediaEvent) {
         val chapterObject = mediaEvent.segment?.getChapterObject()
         mediaTracker?.trackEvent(Media.Event.ChapterStart, chapterObject, mediaEvent.customAttributes?.toAdobeAttributes())
     }
 
-    private fun MediaSegment.getChapterObject(): Map<String?, Any?> {
+    protected open fun MediaSegment.getChapterObject(): Map<String?, Any?> {
         return Media.createChapterObject(title,
                 index?.toLong() ?: 0,
                 duration?.toDouble() ?: 0.0,
@@ -182,7 +182,7 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
         )
     }
 
-    internal fun MediaContent.getMediaObject(): HashMap<String?, Any?> {
+    protected open fun MediaContent.getMediaObject(): HashMap<String?, Any?> {
         return Media.createMediaObject(
                 name,
                 contentId,
@@ -192,7 +192,7 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
         )
     }
 
-    internal fun MediaAdBreak.getAdBreakObject(): Map<String?, Any?> {
+    protected open fun MediaAdBreak.getAdBreakObject(): Map<String?, Any?> {
         return Media.createAdBreakObject(
                 title,
                 1L,
@@ -200,12 +200,12 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
         )
     }
 
-    internal fun MediaAd.getAdObject(): Map<String?, Any?> {
+    protected open fun MediaAd.getAdObject(): Map<String?, Any?> {
         return Media.createAdObject(title, id, position?.toLong() ?: 0, duration?.toDouble()
                 ?: 0.0)
     }
 
-    internal fun MediaContent.getMediaType(): Media.MediaType? {
+    protected open fun MediaContent.getMediaType(): Media.MediaType? {
         return when (contentType) {
             ContentType.AUDIO -> Media.MediaType.Audio
             ContentType.VIDEO -> Media.MediaType.Video
@@ -213,7 +213,7 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
         }
     }
 
-    internal fun Map<String, String>.toAdobeAttributes(): Map<String, String> =
+    protected open fun Map<String, String>.toAdobeAttributes(): Map<String, String> =
             mapKeys { (key, _) ->
                 when (key) {
                     MediaAttributeKeys.AD_ADVERTISING_ID -> AdMetadataKeys.ADVERTISER
@@ -239,7 +239,7 @@ open class AdobeKit: AdobeKitBase(), KitIntegration.EventListener {
                 }
             }
 
-    internal fun Long.toSeconds(): Double {
+    protected open fun Long.toSeconds(): Double {
         return toDouble() / 1000
     }
 

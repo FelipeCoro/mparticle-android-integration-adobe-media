@@ -284,7 +284,7 @@ public abstract class AdobeKitBase extends KitIntegration implements KitIntegrat
         }
     }
 
-    class UrlBuilder {
+    static class UrlBuilder {
         StringBuilder builder;
         boolean hasValue = false;
 
